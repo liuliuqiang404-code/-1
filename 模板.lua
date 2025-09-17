@@ -68,7 +68,7 @@ local Tab = Window:MakeTab({-- T ad相当于一个id
 })
 
 Tab:AddParagraph("作者","刘某❤️一眼鸡")
-Tab:AddParagraph("一个介绍")--这相当于是一个文本标签，第1个是id
+Tab:AddParagraph("一眼鸡和刘某的脚本新脚本功能较少")--这相当于是一个文本标签，第1个是id
 
 
 Tab:AddButton ({--这个就相当于一个按钮
@@ -231,8 +231,8 @@ Tab:AddToggle({--一样
 })
 
 Tab:AddButton({
-  Name = "名",
+  Name = "99夜",
   Callback = function()--再次新建类
-
+loadstring(game:HttpGet("https://raw.githubusercontent.com/54863r/Xknb/refs/heads/main/Xknb"))()
   end
 })
