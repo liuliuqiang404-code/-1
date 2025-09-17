@@ -238,9 +238,3 @@ loadstringgame:lHttpaet(https://raw.githuhusercontent.com/ke9460394-dot/ugik/ref
   end
 })
 
-Tab:AddButton({
-  Name = "doors",
-  Callback = function()--再次新建类
-loadstring(game:HttpGet("https://raw.githubusercontent.com/atnew2025/Chinese-scripts/refs/heads/main/mshax(prohax).txt"))()
-  end
-})
