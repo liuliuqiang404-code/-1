@@ -233,6 +233,14 @@ Tab:AddToggle({--一样
 Tab:AddButton({
   Name = "99夜",
   Callback = function()--再次新建类
-loadstring(game:HttpGet("https://raw.githubusercontent.com/54863r/Xknb/refs/heads/main/Xknb"))()
+loadstringgame:lHttpaet(https://raw.githuhusercontent.com/ke9460394-dot/ugik/refs/heads/main/99
+%E5%A4%9C8E8%99%9A%E7%A9%5A.txt')))
+  end
+})
+
+Tab:AddButton({
+  Name = "doors",
+  Callback = function()--再次新建类
+loadstring(game:HttpGet("https://raw.githubusercontent.com/atnew2025/Chinese-scripts/refs/heads/main/mshax(prohax).txt"))()
   end
 })
