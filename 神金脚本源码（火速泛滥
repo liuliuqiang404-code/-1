@@ -47,23 +47,11 @@ loadstring(game:HttpGet(utf8.char((function() return table.unpack({104,116,116,1
     end
 })
 
-local Tab = Window:MakeTab({
-	Name = "doors",
-	Icon = "rbxassetid://93566402708060",
-	PremiumOnly = false
-})
-
 Tab:AddButton({
 	Name = "doors汉化",
 	Callback = function()
      loadstring(game:HttpGet("https://raw.githubusercontent.com/atnew2025/Chinese-scripts/refs/heads/main/mshax(prohax).txt"))()
   	end    
-})
-
-local Tab = Window:MakeTab({
-	Name = "99夜",
-	Icon = "rbxassetid://93566402708060",
-	PremiumOnly = false
 })
 
 Tab:AddButton({
