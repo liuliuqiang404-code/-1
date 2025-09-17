@@ -1,15 +1,15 @@
 local CoreGui = game:GetService("StarterGui")CoreGui:SetCore("SendNotification", {    Title = "刘某",    Text = "反挂机已开启",    Duration = 5, })print("反挂机开启")		local vu = game:GetService("VirtualUser")		game:GetService("Players").LocalPlayer.Idled:connect(function()		   vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)		   wait(1)		   vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)		end)
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-local Window = OrionLib:MakeWindow({Name = "刘某", HidePremium = false, SaveConfig = false, IntroText = "rz", ConfigFolder = "rz"})
+local Window = OrionLib:MakeWindow({Name = "刘某", HidePremium = false, SaveConfig = false, IntroText = "刘某", ConfigFolder = "刘某"})
 
 local Tab = Window:MakeTab({
     Name = "公告",
-    Icon = "rbxassetid://7734068321",
+    Icon = "rbxassetid://sb",
     PremiumOnly = false
 })
 
 Tab:AddParagraph("作者","刘某")
-Tab:AddLabel("完全可以搭配我的解卡密一起用")
+Tab:AddLabel("牛魔脚本鸡脖长")
 Tab:AddLabel("作者刘某")
 Tab:AddLabel("禁止倒卖")
 
