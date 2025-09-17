@@ -60,21 +60,21 @@ OrionLib:MakeNotification({
                 })
 Start = tick()
 Heartbeat:Connect(HeartbeatUpdate)
-local Window = OrionLib:MakeWindow({Name = "脚本名", HidePremium = false, SaveConfig =true,IntroText="加载脚本", ConfigFolder = "文件存放名"})
+local Window = OrionLib:MakeWindow({Name = "yyj脚本", HidePremium = false, SaveConfig =true,IntroText="加载脚本", ConfigFolder = "文件存放名"})
 local Tab = Window:MakeTab({-- T ad相当于一个id
 	Name = "主页",
 	Icon = "rbxassetid://4483345998",
 	PremiumOnly = false
 })
 
-Tab:AddParagraph("作者","KK")
+Tab:AddParagraph("作者","刘某❤️一眼鸡")
 Tab:AddParagraph("一个介绍")--这相当于是一个文本标签，第1个是id
 
 
 Tab:AddButton ({--这个就相当于一个按钮
 	Name = "复制群",
 	Callback = function ()
-	 setclipboard("你的群好了")
+	 setclipboard("暂无")
 	 OrionLib:MakeNotification({
                     Name = "信息",
                     Content = "复制请在粘贴板中查看",
