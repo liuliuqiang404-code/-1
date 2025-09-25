@@ -54,15 +54,13 @@ Button.MouseButton1Click:Connect(function()
     local code = Input.Text
     if table.find(permanent_keys, code) then
         Result.Text = "永久卡密验证成功！"
-        Frame:Destroy()
-        -- 调用你的主脚本功能
-        -- require("你的主脚本")
-    elseif table.find(one_time_keys, code) then
+        Frame:Des
+    elseif table.find(one_time_keys
         if not used_keys[code] then
-            used_keys[code] = true
+            used_
             Result.Text = "一次性卡密验证成功！"
             Frame:Destroy()
-            -- require("loadstring(game:HttpGet("https://raw.githubusercontent.com/liuliuqiang404-code/-666/refs/heads/main/刘某脚本加载器"))()")
+            -- require("loadstring(game:HttpGet("https://raw.githubusercontent.com/liuliuqiang404-code/-66")
         else
             Result.Text = "此一次性卡密已被使用！"
         end
