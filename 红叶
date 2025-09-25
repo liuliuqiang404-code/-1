@@ -1,0 +1,457 @@
+-- 初始化 NativeLoader 实例存储表
+getgenv().NativeLoaderInstances = getgenv().NativeLoaderInstances or {}
+if getgenv().NativeLoaderInstances and not getmetatable(getgenv().NativeLoaderInstances) then
+    setmetatable(getgenv().NativeLoaderInstances, {
+        __index = function(self, key)
+            if key == "Length" then
+                local length = 0
+                for _, _ in pairs(self) do
+                    length = length + 1
+                end
+                return length
+            end
+            return rawget(self, key)
+        end;
+    })
+elseif getgenv().NativeLoaderInstances and getmetatable(getgenv().NativeLoaderInstances) then
+    if getgenv().NativeLoaded then
+        warn("An instance is already running.")
+    end
+end
+local scriptKey = scriptKey or ""
+
+-- 初始化 Native 设置
+getgenv().NativeSettings = getgenv().NativeSettings or {
+    OverwriteConfiguration = false;
+    QueueOnTeleport = false;
+}
+
+-- 定义空函数（用于兼容特定执行环境）
+loadstring([[
+    function LPH_NO_VIRTUALIZE(f) return f end;
+    function LPH_JIT(f) return f end;
+    function LPH_JIT_MAX(f) return f end;
+    function LRM_SANITIZE(...) return tostring(...) end;
+]])();
+
+-- 检查界面是否启用（根据 scriptKey 长度等条件）
+local function isInterfaceEnabled()
+    local interfaceEnabled = false
+    if type(scriptKey) ~= "string" or #scriptKey < 16 then
+        interfaceEnabled = true
+    else
+        if type(scriptKey) == "string" and #scriptKey >= 16 then
+            scriptKey = scriptKey:gsub("%W", "")
+        end
+        if type(scriptKey) ~= "string" or #scriptKey < 16 then
+            interfaceEnabled = true
+        end
+    end
+    return interfaceEnabled
+end
+local interfaceEnabled = isInterfaceEnabled()
+
+-- 加载 Native 库
+local library = (getgenv and getgenv().NativeLibrary) or loadstring(game:HttpGet("https://getnative.cc/script/interface", true))(getgenv().NativeLibrary)
+getgenv().NativeLibrary = library
+
+-- 服务获取的封装（兼容不同执行环境的引用方式）
+local service = setmetatable({}, {
+    __index = function(self, key)
+        return (cloneref or function(service) return service end)(game.GetService(game, key))
+    end
+})
+
+-- 服务相关标识与名称等变量
+local serviceIdentifier = "native" or "(__YourServiceIdentifier__)"
+local serviceName = "Native" or "(__YourServiceName__)"
+local apiToken = "Submarine" or "(__YourAPIToken__)"
+local keyPrefix = "Native_" or "(__YourKeyPrefix__)"
+local keyDirectory = "Nativity" or "(__YourKeyDirectory__)"
+
+-- 具体服务引用
+local httpService = service.HttpService
+local cache = {
+    Local = {};
+}
+local debounce = {}
+
+-- 数据与设置相关
+local rootDir = serviceName
+if not (isfile(rootDir) or isfolder(rootDir)) then
+    makefolder(rootDir)
+end
+local dir = ("%s/Loader"):format(rootDir)
+if not (isfile(dir) or isfolder(dir)) then
+    makefolder(dir)
+end
+
+-- 各类数据默认值
+local data = {
+    Toggle = {
+        ["General"] = true;
+        ["Loader.Load: Queue On Teleport"] = false;
+    };
+    Dropdown = {};
+    Slider = {};
+    Input = {
+        ["Loader.Load: Key"] = "";
+    };
+    Keybind = {};
+}
+
+-- 黑名单数据（这些数据不参与某些操作，比如保存覆盖等）
+local blacklistedData = {
+    Toggle = {
+        ["General"] = true;
+    };
+    Dropdown = {};
+    Slider = {};
+    Input = {};
+    Keybind = {};
+}
+
+-- 从配置文件加载已有数据
+if isfile(dir .. "/config.json") then
+    for key, value in pairs(httpService:JSONDecode(readfile(dir .. "/config.json"))) do
+        for key2, value2 in pairs(value) do
+            if type(data[key]) == "table" then
+                if not blacklistedData[key][key2] then
+                    if type(data[key][key2]) == type(value2) then
+                        data[key][key2] = value2
+                    end
+                end
+            end
+        end
+    end
+end
+
+local interfaces = {}
+-- HTTP 请求函数，兼容不同执行环境（如 Synapse、Fluxus 等）
+local httpRequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+
+-- 运行加载器的函数
+local function runLoader(write)
+    local projects = {
+        ["Death Ball"] = {
+            GameId = 5166944221;
+            PlaceIds = {};
+            Loader = "https://api.luarmor.net/files/v3/loaders/2623c74821b882b1e5e529b9078bd30a.lua";
+        };
+        ["Anime Vanguards"] = {
+            GameId = 5578556129;
+            PlaceIds = {};
+            Loader = "https://api.luarmor.net/files/v3/loaders/be2f65b9bda9c9e9aaf37dbbe3d48070.lua";
+        };
+        ["Fisch"] = {
+            GameId = 5750914919;
+            PlaceIds = {};
+            Loader = "https://api.luarmor.net/files/v3/loaders/3c7650df1287b147b62944e27ae8006a.lua";
+        };
+        ["Fisch: Test"] = {
+            GameId = 6756890519;
+            PlaceIds = {};
+            Loader = "https://api.luarmor.net/files/v3/loaders/3c7650df1287b147b62944e27ae8006a.lua";
+        };
+        ["Fisch: Test 2"] = {
+            GameId = 5750914919;
+            PlaceIds = {};
+            Loader = "https://api.luarmor.net/files/v3/loaders/3c7650df1287b147b62944e27ae8006a.lua";
+        };
+        ["Jujutsu Infinite"] = {
+            GameId = 3808223175;
+            PlaceIds = {};
+            Loader = "https://api.luarmor.net/files/v3/loaders/1e9916162a8c65e9b12fb4fd43fdb2ab.lua";
+        };
+        ["Anime Adventures"] = {
+            GameId = 3183403065;
+            PlaceIds = {};
+            Loader = "https://api.luarmor.net/files/v3/loaders/e35860641326143c12c12f00dbffade4.lua";
+        };
+        ["Beaks"] = {
+            GameId = 7095682825;
+            PlaceIds = {};
+            Loader = "https://api.luarmor.net/files/v3/loaders/b8966cedce625dac5d782b13ea5d7a3d.lua";
+        };
+        ["Dead Rails"] = {
+            GameId = 7018190066;
+            PlaceIds = {};
+            Loader = "https://api.luarmor.net/files/v3/loaders/2d9f941db1fc0f126b147f7a827a1c14.lua";
+        };
+        ["Grow A Garden"] = {
+            GameId = 7436755782;
+            PlaceIds = {};
+            Loader = "https://api.luarmor.net/files/v3/loaders/7c50c2feaad52c53adf8e3a4641ec441.lua";
+        };
+    };
+
+    local loaded = false
+
+    for name, project in pairs(projects) do
+        local loaderUrl = project.Loader
+        if project.GameId == game.GameId then
+            loaded = true
+
+            print("scriptKey =", scriptKey)
+            print(("Loading %s"):format(name))
+
+            if not write then
+                local getResponse = game:HttpGet(loaderUrl)
+                if getResponse then
+                    getgenv().NativeLoaded = true
+                    (loadstring or load)(getResponse)()
+                    if data.Toggle["Loader.Load: Queue On Teleport"] then
+                        if not getgenv().NativeQueueOnTeleport then
+                            local queueTeleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
+                            if queueTeleport then
+                                getgenv().NativeQueueOnTeleport = getResponse
+                                queueTeleport(('scriptKey = "%s";\n%s'):format(scriptKey, getgenv().NativeQueueOnTeleport))
+                            end
+                        end
+                    end
+                else
+                    warn(("Could not fetch %s; Suggest switching to an executor that isn't any of the following: Solara and Xeno"):format(loaderUrl or "loader"))
+                end
+            else
+                local interfaceEnabledInner = false
+                if not scriptKey or #scriptKey < 16 then
+                    interfaceEnabledInner = true
+                end
+                setclipboard(
+                    ('-- Native: %s;\nscriptKey = "%s";\n(loadstring or load)(game:HttpGet("%s"))();'):format(name, not interfaceEnabledInner and scriptKey or "", project.Loader)
+                )
+            end
+
+            print(("Loaded %s"):format(name))
+
+            break
+        end
+    end
+
+    if not loaded then
+        warn(("Unrecognized GameId %d"):format(game.GameId))
+
+        setclipboard(tostring(game.GameId))
+    end
+end
+
+-- 加载功能函数
+local function loadFunction(init, window)
+    window:Destroy()
+    runLoader()
+    init:Notify({
+        Name = ("Loaded");
+        Body = ("");
+        Duration = 5;
+        Callback = function(self)
+        end;
+    })
+    task.spawn(function()
+        task.wait(2.5)
+        init:Destroy()
+        getgenv().NativeLoaderInstances[init] = nil
+    end)
+end
+
+-- 初始化 Native 界面
+local init = library:Init({
+    Name = "Native";
+    Parent = service.CoreGui;
+    Callback = function(self)
+    end;
+})
+
+do
+    local window = init:CreateWindow({
+        Name = "Loader";
+        Visible = true;
+        Silent = false;
+        Asset = false;
+        Keybind = Enum.KeyCode.RightShift;
+        Callback = function(self)
+        end;
+    })
+
+    do
+        -- 加载器标签页
+        local loaderTab = window:CreateTab({
+            Name = "Loader";
+            Home = true;
+            Icon = nil;
+            LayoutOrder = 1;
+            Callback = function(self)
+            end;
+        })
+
+        -- 加载部分
+        local loadSection = loaderTab:CreateSection({
+            Name = "Load";
+            Visible = true;
+            LayoutOrder = 1;
+            Callback = function(self)
+            end;
+        })
+
+        do
+            local toggleQueue = loadSection:CreateToggle({
+                Name = "Queue On Teleport (Execute Native On Teleport AKA Auto-Execute On Teleport)";
+                Initial = true;
+                LayoutOrder = 1;
+                Value = data.Toggle["Loader.Load: Queue On Teleport"];
+                Callback = function(self, value)
+                    data.Toggle["Loader.Load: Queue On Teleport"] = value
+
+                    if data.Toggle["Loader.Load: Queue On Teleport"] then
+                        init:Notify({
+                            Name = ("Queuing On Teleport");
+                            Body = ("");
+                            Duration = 5;
+                            Callback = function(self)
+                            end;
+                        })
+                    end
+                end;
+            })
+
+            local buttonDiscord = loadSection:CreateButton({
+                Name = "Join Our Discord Server";
+                Initial = false;
+                LayoutOrder = 1;
+                Callback = function(self)
+                    setclipboard("https://discord.gg/natives")
+                    init:Notify({
+                        Name = ("Copied Discord Url");
+                        Body = ("");
+                        Duration = 2.5;
+                        Callback = function(self)
+                        end;
+                    })
+                    if httpRequest then
+                        task.spawn(function()
+                            pcall(function()
+                                httpRequest({
+                                    Url = 'http://127.0.0.1:6463/rpc?v=1',
+                                    Method = 'POST',
+                                    Headers = {
+                                        ['Content-Type'] = 'application/json',
+                                        ['Origin'] = 'https://discord.com/'
+                                    },
+                                    Body = httpService:JSONEncode({
+                                        cmd = 'INVITE_BROWSER',
+                                        nonce = httpService:GenerateGUID(false),
+                                        args = {code = 'natives'}
+                                    })
+                                })
+                            end)
+                        end)
+                    end
+                end;
+            })
+
+            if true then
+                init:CreateDialog({
+                    Name = ("Native");
+                    Body = ("You are being invited to our Discord server!");
+                    Duration = 15;
+                    Buttons = {};
+                    Callback = function(self)
+                    end;
+                })
+                if httpRequest then
+                    task.spawn(function()
+                        pcall(function()
+                            httpRequest({
+                                Url = 'http://127.0.0.1:6463/rpc?v=1',
+                                Method = 'POST',
+                                Headers = {
+                                    ['Content-Type'] = 'application/json',
+                                    ['Origin'] = 'https://discord.com/'
+                                },
+                                Body = httpService:JSONEncode({
+                                    cmd = 'INVITE_BROWSER',
+                                    nonce = httpService:GenerateGUID(false),
+                                    args = {code = 'natives'}
+                                })
+                            })
+                        end)
+                    end)
+                end
+            end
+
+            local inputKey = loadSection:CreateInput({
+                Name = "Key";
+                Initial = true;
+                Integer = false;
+                LayoutOrder = 1;
+                ClearTextOnFocus = false;
+                Placeholder = "Key here...";
+                Value = data.Input["Loader.Load: Key"];
+                Callback = function(self, value, enter)
+                    data.Input["Loader.Load: Key"] = value
+
+                    cache.scriptKey = data.Input["Loader.Load: Key"]:gsub("%W", "")
+                end;
+            })
+
+            local buttonLoad = loadSection:CreateButton({
+                Name = "Load";
+                Initial = false;
+                LayoutOrder = 1;
+                Callback = function(self)
+                    scriptKey = cache.scriptKey
+                    interfaceEnabled = isInterfaceEnabled()
+                    if not interfaceEnabled then
+                        loadFunction(init, window)
+                    else
+                        init:Notify({
+                            Name = ("Load");
+                            Body = ("Invalid key input.");
+                            Duration = 5;
+                            Callback = function(self)
+                            end;
+                        })
+                    end
+                end;
+            })
+
+            local buttonCopyKeyLinkvertise = loadSection:CreateButton({
+                Name = "Copy Key Url : Get Key (Linkvertise)";
+                Initial = false;
+                LayoutOrder = 1;
+                Callback = function(self)
+                    setclipboard("https://ads.luarmor.net/get_key?for=Native_Linkvertise-OlHmNGrpKcxc")
+                    init:Notify({
+                        Name = ("Copied Key Url");
+                        Body = ("");
+                        Duration = 2.5;
+                        Callback = function(self)
+                        end;
+                    })
+                end;
+            })
+
+            local buttonCopyKeyLootlabs = loadSection:CreateButton({
+                Name = "Copy Key Url : Get Key (Lootlabs)";
+                Initial = false;
+                LayoutOrder = 1;
+                Callback = function(self)
+                    setclipboard("https://ads.luarmor.net/get_key?for=Native_Lootlabs-hgTHxCASTxVE")
+                    init:Notify({
+                        Name = ("Copied Key Url");
+                        Body = ("");
+                        Duration = 2.5;
+                        Callback = function(self)
+                        end;
+                    })
+                end;
+            })
+
+            local buttonCopyScriptLoader = loadSection:CreateButton({
+                Name = "Copy Script Loader";
+                Initial = false;
+                LayoutOrder = 1;
+                Callback = function(self)
+                    runLoader(true)
+                    init:Notify({
+                        Name = ("Copied Script Loader");
+                        Body =
