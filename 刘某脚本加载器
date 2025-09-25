@@ -1,6 +1,6 @@
 -- 卡密列表，实际应用建议服务器校验
 local one_time_keys = {"ONCE-123", "ONCE-456"} -- 一次性卡密
-local permanent_keys = {"PERM-888", "PERM-999"} -- 永久卡密
+local permanent_keys = {"PERM-888", "刘"} -- 永久卡密
 local used_keys = {} -- 存储已用一次性卡密
 
 -- 创建UI界面
