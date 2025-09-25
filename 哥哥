@@ -62,7 +62,7 @@ Button.MouseButton1Click:Connect(function()
             used_keys[code] = true
             Result.Text = "一次性卡密验证成功！"
             Frame:Destroy()
-            -- require("你的主脚本")
+            -- require("loadstring(game:HttpGet("https://raw.githubusercontent.com/liuliuqiang404-code/-666/refs/heads/main/刘某脚本加载器"))()")
         else
             Result.Text = "此一次性卡密已被使用！"
         end
